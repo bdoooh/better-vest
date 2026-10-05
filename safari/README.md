@@ -10,7 +10,16 @@ The same extension as [`../extension`](../extension), packaged for Safari on mac
 - Xcode 15 or later, to build the app that carries the extension. A free Apple ID is enough to run it on your own Mac.
 - Python 3 (comes with Xcode's command line tools).
 
-## Build and install
+## Quick install
+
+```sh
+bash safari/install-mac.sh
+```
+
+This builds the extension, signs it for this Mac only (no Apple account needed), puts the app in `~/Applications`
+and prints the Safari steps that are left.
+
+## Build and install (step by step, in Xcode)
 
 ```sh
 python3 safari/build.py --xcode --bundle-id com.yourname.better-vest
