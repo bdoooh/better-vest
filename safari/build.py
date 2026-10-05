@@ -20,6 +20,7 @@ slipping through):
 import argparse
 import json
 import platform
+import re
 import shutil
 import subprocess
 import sys
@@ -35,6 +36,8 @@ LEAVE_OUT = {'update.html', 'update/page.js', 'update/key.js', 'update/update.cs
              'files.json', 'files.json.sig', 'INSTALL.txt'}
 
 SAFARI_MIN = '18.0'
+SAFARI_DESCRIPTION = 'Astral suite for Vest Markets: Execute card, hotkey macros, chart TP/SL, themes, focus mode, calendar.'
+assert len(SAFARI_DESCRIPTION) <= 112
 
 
 def fail(msg):
@@ -64,6 +67,8 @@ def patch_manifest():
     path = EXT / 'manifest.json'
     m = json.loads(path.read_text(encoding='utf-8'))
     m['browser_specific_settings'] = {'safari': {'strict_min_version': SAFARI_MIN}}
+    # App Store Connect rejects a Safari extension whose description is over 112 characters
+    m['description'] = SAFARI_DESCRIPTION
     path.write_text(json.dumps(m, indent=2) + '\n', encoding='utf-8')
 
 
@@ -107,6 +112,25 @@ def xcode(bundle_id, ios):
     # building again in Xcode picks up the new files.
     print(' '.join(cmd))
     subprocess.run(cmd, check=True)
+    fix_bundle_ids(bundle_id)
+
+
+def fix_bundle_ids(bundle_id):
+    # The converter derives the app's id from the app name ("...Better-Vest") but the extension's from
+    # --bundle-identifier, so newer Xcode rejects the build ("not prefixed with the parent app's id").
+    # Force app = bundle_id and extension = bundle_id.Extension.
+    for proj in (OUT / 'xcode').glob('*/*.xcodeproj/project.pbxproj'):
+        text = proj.read_text()
+        def sub(m):
+            return 'PRODUCT_BUNDLE_IDENTIFIER = "%s%s";' % (bundle_id, '.Extension' if m.group(1).endswith('.Extension') else '')
+        # the converter targets the installed SDK's macOS; keep it installable on older Macs with Safari 18
+        text = re.sub(r'MACOSX_DEPLOYMENT_TARGET = [\d.]+;', 'MACOSX_DEPLOYMENT_TARGET = 14.0;', text)
+        # App Store Connect needs a category on the app (not the extension)
+        text = text.replace('INFOPLIST_KEY_CFBundleDisplayName = "Better Vest";',
+                            'INFOPLIST_KEY_CFBundleDisplayName = "Better Vest";\n'
+                            '\t\t\t\tINFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";')
+        text = re.sub(r'PRODUCT_BUNDLE_IDENTIFIER = "?([^";]+)"?;', sub, text)
+        proj.write_text(text)
 
 
 def main():

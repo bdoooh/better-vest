@@ -38,6 +38,34 @@ open "safari/build/xcode/Better Vest/Better Vest.xcodeproj"
 Add `--ios` to also get an iPadOS / iOS target. The chart, the Execute card and the Calendar work there, but the
 hotkeys need a hardware keyboard.
 
+## Sharing it through TestFlight
+
+With a paid Apple Developer account you can upload the app to TestFlight. Testers install it from the
+TestFlight app like any other app.
+
+One-time setup:
+
+1. Xcode > Settings > Accounts: sign in with the developer account.
+2. [developer.apple.com](https://developer.apple.com/account/resources/identifiers/list) > Identifiers: register
+   two App IDs, your bundle id and the same id with `.Extension` on the end (for example
+   `com.yourname.better-vest` and `com.yourname.better-vest.Extension`).
+3. App Store Connect > Apps > **+** > New App: platform macOS, with that bundle id.
+
+Then, for each upload:
+
+```sh
+TEAM_ID=ABCDE12345 BUNDLE_ID=com.yourname.better-vest BUILD_NUMBER=2 bash safari/testflight.sh
+```
+
+`BUILD_NUMBER` has to be higher than the last upload's. When the build has finished processing in
+App Store Connect > TestFlight, answer the encryption question on it (the Safari build only uses the browser's
+own crypto, so "None of the algorithms mentioned above"), then add it to a testing group. Internal groups are
+for users on your App Store Connect account. External groups can invite anyone by email or public link, after
+a short Beta App Review.
+
+Remove a copy installed with `install-mac.sh` before installing the TestFlight one, or Safari lists the
+extension twice.
+
 ## Updating
 
 There is no in-app updater in the Safari version (see below). To update, pull the new `extension/` source,
@@ -62,13 +90,16 @@ the bundle id).
 - It leaves out `update.html`, `update/page.js`, `update/key.js`, `update/update.css`, `files.json`,
   `files.json.sig` and `INSTALL.txt`.
 - It adds `browser_specific_settings.safari.strict_min_version: "18.0"` to the manifest.
+- It shortens the manifest description to fit App Store Connect's 112-character limit.
+- In the generated Xcode project, it gives the app and the extension matching bundle ids (the extension's has
+  to start with the app's), sets the deployment target to macOS 14 and sets the app category to Finance.
 
 Each patch checks that the code it changes is still there, so an upstream change that moves it makes
 `build.py` fail instead of quietly shipping an unpatched file.
 
 ## Not yet tested in Safari
 
-The build has only been checked by script, not run in Safari. Test these first:
+The build installs and uploads to TestFlight, but these have not been checked in Safari yet:
 
 - **Certificate PNG export.** It draws an SVG `<foreignObject>` onto a canvas. WebKit has a history of tainting
   the canvas when you do that, so *Save image* may fail.

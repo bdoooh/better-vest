@@ -75,7 +75,11 @@ When your payouts add up, open the Portfolio page and make a certificate of your
 
 ## Install
 
-About two minutes. Works in Chrome, Brave, Edge and Arc.
+The repo has two parts: [`extension/`](extension) is the Chrome extension and the single source of the code, and [`safari/`](safari) holds the scripts that package that same code for Safari.
+
+### Chrome, Brave, Edge and Arc
+
+About two minutes.
 
 1. Download **better-vest-7.5.0.zip** from the [latest release](https://github.com/ax4p/better-vest/releases/latest).
 2. Unzip it.
@@ -94,7 +98,7 @@ When Chrome starts, it may warn you about extensions in developer mode. That's n
 
 Leave Developer mode on afterwards. With it off, Chrome switches the extension off the next time it reloads, and an update reloads it.
 
-### Updating
+#### Updating
 
 From 7.4 on, Better Vest updates itself. When a new version is out, an **Update** button shows up in the dock and the toolbar icon says NEW. Click it, read what's new, then click **Update**. The first time, Chrome asks for your Better Vest folder: pick the one you loaded in step 4 and allow it to edit files. After that it's one click. Your settings and your Calendar stay as they are.
 
@@ -103,6 +107,16 @@ From 7.4 on, Better Vest updates itself. When a new version is out, an **Update*
 Before it writes anything, it downloads every file of the new version from this repo and checks them against a list I sign on my own computer. If one file doesn't match, nothing changes.
 
 Coming from 7.3? That version can't update itself yet, so do it by hand once: download the new zip, unzip it over your old folder (replace the files), then press the round arrow on the Better Vest card in `chrome://extensions`.
+
+### Safari
+
+Safari runs the same code from inside a small Mac app, built with Xcode. On a Mac with Xcode and Safari 18 or later:
+
+```sh
+bash safari/install-mac.sh
+```
+
+The Safari version has no self-updater: to update, pull and run the script again. [`safari/README.md`](safari/README.md) has the full steps, what's different from Chrome, and how to share a build through TestFlight.
 
 ## Try it first on the demo position
 
